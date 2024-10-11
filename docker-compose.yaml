@@ -1,0 +1,40 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db  
+    networks:
+      - app-network
+
+  express:
+    build: ./backend
+    container_name: express
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/usr/src/app   
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/html:/usr/share/nginx/html   
+      - ./nginx/default.conf:/etc/nginx/default.conf 
+    depends_on:
+      - express
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
