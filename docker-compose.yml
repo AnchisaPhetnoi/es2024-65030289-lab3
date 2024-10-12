@@ -1,0 +1,47 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx-container
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf  # mount nginx config
+      - ./html:/usr/share/nginx/html  # mount โฟลเดอร์ html
+    depends_on:
+      - express
+    networks:
+      - my-network
+
+  express:
+    build:
+      context: ./express-docker-project  # เส้นทางที่มี Dockerfile
+    container_name: express-container
+    ports:
+      - "3001:3000"
+    depends_on:
+      - mongodb
+    environment: 
+      - MONGODB_URI=mongodb://mongodb-container:27017/your_database_name  # เชื่อมต่อกับ MongoDB
+    volumes:
+      - ./express-docker-project:/usr/src/app  # mount โฟลเดอร์โปรเจ็กต์ไปที่ Host machine
+    networks:
+      - my-network
+
+  mongodb:
+    image: mongo:4.4
+    container_name: mongodb-container
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-data:/data/db  # mount volume ไปที่ Host machine
+    networks:
+      - my-network
+
+volumes:
+  mongo-data:  # ไม่จำเป็นต้องระบุที่นี่เมื่อใช้ mount volume ตรง
+    driver: local
+
+networks:
+  my-network:
+    driver: bridge
